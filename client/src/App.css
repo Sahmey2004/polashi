@@ -1,0 +1,196 @@
+.card {
+  width: 100%;
+  max-width: 420px;
+  text-align: left;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--code-bg);
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+}
+
+.card h1 {
+  font-size: 32px;
+  margin: 0 0 8px;
+  text-align: left;
+}
+
+.subtitle {
+  color: var(--text);
+  margin-bottom: 24px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.field span {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 16px;
+}
+
+button {
+  font: inherit;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.actions button {
+  flex: 1;
+}
+
+.divider {
+  text-align: center;
+  color: var(--text);
+  font-size: 13px;
+  margin: 20px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.error {
+  color: #f87171;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.hint {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+}
+
+.player-list li {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  color: var(--text-h);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-list.selectable li {
+  cursor: pointer;
+}
+
+.player-list.selectable li.selected {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.you-tag {
+  font-size: 12px;
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.role-card {
+  text-align: center;
+}
+
+.role-card h1 {
+  text-align: center;
+}
+
+.role-eic {
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.role-eic h1 {
+  color: #f87171;
+}
+
+.role-nawab {
+  border-color: rgba(96, 165, 250, 0.5);
+}
+
+.role-nawab h1 {
+  color: #60a5fa;
+}
+
+.teammates {
+  margin: 16px 0 24px;
+  text-align: left;
+}
+
+.teammates ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+}
+
+.scoreboard {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.scoreboard-divider {
+  margin: 0 6px;
+}
+
+.approve {
+  border-color: rgba(74, 222, 128, 0.5);
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+}
+
+.reject {
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+}
+
+.green {
+  border-color: rgba(74, 222, 128, 0.5);
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+}
+
+.red {
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+}
