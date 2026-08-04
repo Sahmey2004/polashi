@@ -5,7 +5,9 @@ import Lobby from "./screens/Lobby";
 import RoleReveal from "./screens/RoleReveal";
 import ChapterBoard from "./screens/ChapterBoard";
 import Vote from "./screens/Vote";
+import VoteReveal from "./screens/VoteReveal";
 import War from "./screens/War";
+import WarReveal from "./screens/WarReveal";
 import GameOver from "./screens/GameOver";
 import "./App.css";
 
@@ -22,7 +24,9 @@ export default function App() {
   const [myRole, setMyRole] = useState(null);
   const [chapterState, setChapterState] = useState(null);
   const [voteProgress, setVoteProgress] = useState(null);
+  const [voteResult, setVoteResult] = useState(null);
   const [warProgress, setWarProgress] = useState(null);
+  const [warResult, setWarResult] = useState(null);
   const [tally, setTally] = useState({});
   const [gameOver, setGameOver] = useState(null);
 
@@ -59,7 +63,7 @@ export default function App() {
       case "chapterState":
         setChapterState(msg);
         setView((v) => {
-          if (v === "roleReveal") return v;
+          if (v === "roleReveal" || v === "voteReveal" || v === "warReveal") return v;
           return msg.phase === "VOTING" ? "vote" : "chapterBoard";
         });
         break;
@@ -67,17 +71,20 @@ export default function App() {
         setVoteProgress(msg);
         break;
       case "voteResult":
-        if (msg.phase === "WAR_CARDS") setView("war");
+        setVoteResult(msg);
+        setView("voteReveal");
         break;
       case "warProgress":
         setWarProgress(msg);
         break;
       case "warResult":
+        setWarResult(msg);
         setTally((t) => ({ ...t, [msg.chapterWinner]: (t[msg.chapterWinner] ?? 0) + 1 }));
+        setView("warReveal");
         break;
       case "gameOver":
         setGameOver(msg);
-        setView("gameOver");
+        setView((v) => (v === "voteReveal" || v === "warReveal" ? v : "gameOver"));
         break;
       default:
         break;
@@ -110,6 +117,20 @@ export default function App() {
 
   function handlePlayCard(red) {
     connRef.current.send("playWarCard", { red });
+  }
+
+  function handleVoteRevealContinue() {
+    if (voteResult.phase === "WAR_CARDS") {
+      setView("war");
+    } else if (gameOver) {
+      setView("gameOver");
+    } else {
+      setView("chapterBoard");
+    }
+  }
+
+  function handleWarRevealContinue() {
+    setView(gameOver ? "gameOver" : "chapterBoard");
   }
 
   switch (view) {
@@ -165,6 +186,12 @@ export default function App() {
           onPlay={handlePlayCard}
         />
       );
+
+    case "voteReveal":
+      return <VoteReveal voteResult={voteResult} onContinue={handleVoteRevealContinue} />;
+
+    case "warReveal":
+      return <WarReveal warResult={warResult} onContinue={handleWarRevealContinue} />;
 
     case "gameOver":
       return <GameOver winner={gameOver.winner} tally={tally} />;

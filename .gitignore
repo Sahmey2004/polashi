@@ -10,3 +10,4 @@ client/dist/
 .DS_Store
 .idea/
 *.iml
+.superpowers/
