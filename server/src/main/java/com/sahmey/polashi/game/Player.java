@@ -8,6 +8,7 @@ public final class Player{
     private final UUID id;
     private final String nickname;
     private Faction role;
+    private Character character;
     private WebSocketSession session;
 
 
@@ -31,6 +32,14 @@ public final class Player{
 
     public void setRole(Faction role){
         this.role = role;
+    }
+
+    public Character getCharacter(){
+        return character;
+    }
+
+    public void setCharacter(Character character){
+        this.character = character;
     }
 
     public WebSocketSession getSession(){

@@ -4,6 +4,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
+import com.sahmey.polashi.game.CharacterSight;
 import com.sahmey.polashi.game.Faction;
 import com.sahmey.polashi.game.Game;
 import com.sahmey.polashi.game.MapCard;
@@ -230,6 +231,8 @@ public class GameSocketHandler extends TextWebSocketHandler {
         payload.put("type", "voteResult");
         payload.put("phase", game.getPhase().name());
         payload.put("captainId", game.getCurrentCaptain().getId().toString());
+        payload.put("approveCount", game.getLastVoteApproveCount());
+        payload.put("totalVotes", game.getPlayers().size());
         broadcast(game, payload);
     }
 
@@ -245,7 +248,8 @@ public class GameSocketHandler extends TextWebSocketHandler {
         ObjectNode payload = mapper.createObjectNode();
         payload.put("type", "warResult");
         payload.put("phase", game.getPhase().name());
-        payload.put("chapter", game.getCurrentChapter());
+        payload.put("chapter", game.getLastChapterNumber());
+        payload.put("teamSize", game.getLastChapterTeamSize());
         payload.put("redsPlayed", game.getLastChapterRedsPlayed());
         payload.put("chapterWinner", game.getLastChapterWinner().name());
         broadcast(game, payload);
@@ -263,14 +267,23 @@ public class GameSocketHandler extends TextWebSocketHandler {
         ObjectNode payload = mapper.createObjectNode();
         payload.put("type", "privateRole");
         payload.put("role", player.getRole().name());
-        if (player.getRole() == Faction.EIC) {
-            ArrayNode teammates = payload.putArray("teammates");
-            for (Player p : game.getPlayers()) {
-                if (p.getRole() == Faction.EIC && !p.getId().equals(player.getId())) {
-                    teammates.add(p.getNickname());
-                }
-            }
+        payload.put("character", player.getCharacter().getDisplayName());
+
+        ArrayNode clearSight = payload.putArray("clearSight");
+        for (CharacterSight.SightEntry entry : game.getClearSight(player.getId())) {
+            ObjectNode entryNode = clearSight.addObject();
+            entryNode.put("character", entry.character().getDisplayName());
+            entryNode.put("playerId", entry.player().getId().toString());
+            entryNode.put("nickname", entry.player().getNickname());
         }
+
+        ArrayNode confusedSight = payload.putArray("confusedSight");
+        for (Player suspect : game.getConfusedSight(player.getId())) {
+            ObjectNode suspectNode = confusedSight.addObject();
+            suspectNode.put("playerId", suspect.getId().toString());
+            suspectNode.put("nickname", suspect.getNickname());
+        }
+
         send(player.getSession(), payload);
     }
 

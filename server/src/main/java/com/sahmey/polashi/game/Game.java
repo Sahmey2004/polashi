@@ -15,13 +15,17 @@ public final class Game{
     private final List<Player> proposedTeam = new ArrayList<>();
     private final Map<UUID, Boolean> votes = new HashMap<>();
     private final Map<UUID, Boolean> warCards = new HashMap<>();
+    private Map<UUID, CharacterSight.SightResult> sightByPlayer = Map.of();
     private final ChapterProgress rejectTracking = new ChapterProgress();
     private final Scoreboard scoreboard = new Scoreboard();
     private Phase phase = Phase.LOBBY;
     private int captainIndex = 0;
     private int currentChapter = 1;
     private int lastChapterRedsPlayed = 0;
+    private int lastChapterTeamSize = 0;
+    private int lastChapterNumber = 0;
     private Faction lastChapterWinner = null;
+    private int lastVoteApproveCount = 0;
 
     public synchronized Player addPlayer(String nickname, WebSocketSession session){
         Player player = new Player(nickname, session);
@@ -30,21 +34,17 @@ public final class Game{
     }
 
     public synchronized void start(){
-        int redCount = FactionTable.redCount(players.size());
+        List<Character> characters = CharacterRoster.fullRoster(players.size());
+        Collections.shuffle(characters);
 
-        List<Faction> roles = new ArrayList<>();
-        for (int i = 0; i < redCount ; i++){
-            roles.add(Faction.EIC);
-        }
-        while (roles.size() < players.size()){
-            roles.add(Faction.NAWAB);
+        for (int i = 0; i < players.size(); i++){
+            Player player = players.get(i);
+            Character character = characters.get(i);
+            player.setCharacter(character);
+            player.setRole(character.getFaction());
         }
 
-        Collections.shuffle(roles);
-
-        for(int i = 0; i < players.size(); i++){
-            players.get(i).setRole(roles.get(i));
-        }
+        sightByPlayer = CharacterSight.resolveAll(players);
 
         captainIndex = 0;
         phase = Phase.TEAM_PROPOSAL;
@@ -107,6 +107,7 @@ public final class Game{
         }
 
         long approveCount = votes.values().stream().filter(v -> v).count();
+        lastVoteApproveCount = (int) approveCount;
         votes.clear();
 
         if (approveCount > players.size() / 2) {
@@ -126,6 +127,20 @@ public final class Game{
         return scoreboard;
     }
 
+    public synchronized int getLastVoteApproveCount(){
+        return lastVoteApproveCount;
+    }
+
+    public synchronized List<CharacterSight.SightEntry> getClearSight(UUID playerId){
+        CharacterSight.SightResult result = sightByPlayer.get(playerId);
+        return result == null ? List.of() : result.clear();
+    }
+
+    public synchronized List<Player> getConfusedSight(UUID playerId){
+        CharacterSight.SightResult result = sightByPlayer.get(playerId);
+        return result == null ? List.of() : result.confused();
+    }
+
     public synchronized int getVotesCastCount(){
         return votes.size();
     }
@@ -136,6 +151,14 @@ public final class Game{
 
     public synchronized int getLastChapterRedsPlayed(){
         return lastChapterRedsPlayed;
+    }
+
+    public synchronized int getLastChapterTeamSize(){
+        return lastChapterTeamSize;
+    }
+
+    public synchronized int getLastChapterNumber(){
+        return lastChapterNumber;
     }
 
     public synchronized Faction getLastChapterWinner(){
@@ -171,6 +194,8 @@ public final class Game{
         int threshold = MapCard.redsToWin(players.size(), currentChapter);
         Faction chapterWinner = Chapter.resolve((int) redsPlayed, threshold);
         lastChapterRedsPlayed = (int) redsPlayed;
+        lastChapterTeamSize = proposedTeam.size();
+        lastChapterNumber = currentChapter;
         lastChapterWinner = chapterWinner;
         scoreboard.recordWin(chapterWinner);
 

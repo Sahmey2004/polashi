@@ -29,6 +29,81 @@ class GameTest {
     }
 
     @Test
+    void startAssignsACharacterToEveryPlayerMatchingTheirFaction() {
+        Game game = gameWithPlayers(7);
+        game.start();
+
+        for (Player player : game.getPlayers()) {
+            assertNotNull(player.getCharacter(), player.getNickname() + " should have a character");
+            assertEquals(player.getRole(), player.getCharacter().getFaction());
+        }
+    }
+
+    @Test
+    void startAssignsCharactersMatchingTheRosterForPlayerCount() {
+        for (int players = 5; players <= 10; players++) {
+            Game game = gameWithPlayers(players);
+            game.start();
+
+            Set<Character> assigned = game.getPlayers().stream()
+                .map(Player::getCharacter)
+                .collect(Collectors.toSet());
+
+            assertEquals(players, assigned.size(), "players=" + players);
+
+            // Legal set, not a second randomized nawabRoster() call (which could draw a
+            // different subset than start() actually used and flake this assertion).
+            Set<Character> legal = new HashSet<>(CharacterRoster.eicRoster(players));
+            legal.add(Character.MIR_MODON);
+            legal.add(Character.MOHAN_LAL);
+            legal.add(Character.SIRAJ_UD_DAULAH);
+            legal.add(Character.LUTFUNNISA_BEGUM);
+            legal.add(Character.ST_FRAIS);
+            int nawabNeeded = players - FactionTable.redCount(players);
+            if (nawabNeeded == 6) {
+                legal.add(Character.BENGALI_NOBLEMAN);
+            }
+
+            assertTrue(legal.containsAll(assigned), "players=" + players + " assigned=" + assigned);
+        }
+    }
+
+    @Test
+    void mirJafarAndGhosetiBegumSeeEachOtherClearly() {
+        Game game = gameWithPlayers(10);
+        game.start();
+
+        Player jafar = findByCharacter(game, Character.MIR_JAFAR);
+        Player ghoseti = findByCharacter(game, Character.GHOSETI_BEGUM);
+        Player durlabh = findByCharacter(game, Character.RAY_DURLABH);
+
+        Set<Player> jafarSees = game.getClearSight(jafar.getId()).stream()
+            .map(CharacterSight.SightEntry::player)
+            .collect(Collectors.toSet());
+        assertEquals(Set.of(ghoseti, durlabh), jafarSees);
+    }
+
+    @Test
+    void mohanLalSeesModonAndGhosetiButNotWhichIsWhich() {
+        Game game = gameWithPlayers(10);
+        game.start();
+
+        Player mohanLal = findByCharacter(game, Character.MOHAN_LAL);
+        Player modon = findByCharacter(game, Character.MIR_MODON);
+        Player ghoseti = findByCharacter(game, Character.GHOSETI_BEGUM);
+
+        assertTrue(game.getClearSight(mohanLal.getId()).isEmpty());
+        assertEquals(Set.of(modon, ghoseti), Set.copyOf(game.getConfusedSight(mohanLal.getId())));
+    }
+
+    private Player findByCharacter(Game game, Character character) {
+        return game.getPlayers().stream()
+            .filter(p -> p.getCharacter() == character)
+            .findFirst()
+            .orElseThrow();
+    }
+
+    @Test
     void startAssignsARoleToEveryPlayer() {
         Game game = gameWithPlayers(5);
         game.start();
@@ -158,6 +233,7 @@ class GameTest {
         }
 
         assertEquals(Phase.WAR_CARDS, game.getPhase());
+        assertEquals(7, game.getLastVoteApproveCount());
     }
 
     @Test
@@ -173,6 +249,7 @@ class GameTest {
 
         assertEquals(Phase.TEAM_PROPOSAL, game.getPhase());
         assertNotEquals(firstCaptain.getId(), game.getCurrentCaptain().getId());
+        assertEquals(0, game.getLastVoteApproveCount());
     }
 
     @Test
@@ -241,6 +318,8 @@ class GameTest {
         assertEquals(Phase.TEAM_PROPOSAL, game.getPhase());
         assertEquals(Faction.EIC, game.getLastChapterWinner());
         assertEquals(threshold, game.getLastChapterRedsPlayed());
+        assertEquals(team.size(), game.getLastChapterTeamSize());
+        assertEquals(1, game.getLastChapterNumber());
     }
 
     @Test
