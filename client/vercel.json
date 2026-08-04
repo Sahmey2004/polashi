@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/polashi/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/polashi/favicon.svg", "destination": "/favicon.svg" },
+    { "source": "/polashi", "destination": "/index.html" },
+    { "source": "/polashi/", "destination": "/index.html" }
+  ]
+}
