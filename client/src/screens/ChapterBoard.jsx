@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function ChapterBoard({ chapterState, players, myPlayerId, tally, onPropose }) {
+export default function ChapterBoard({ chapterState, players, myPlayerId, tally, onPropose, roadmap }) {
   const { chapter, captainId, teamSize } = chapterState;
   const captain = players.find((p) => p.id === captainId);
   const isCaptain = captainId === myPlayerId;
@@ -16,6 +16,7 @@ export default function ChapterBoard({ chapterState, players, myPlayerId, tally,
 
   return (
     <div className="card">
+      {roadmap}
       <div className="scoreboard">
         <span>EIC {tally.EIC ?? 0}</span>
         <span className="scoreboard-divider">–</span>

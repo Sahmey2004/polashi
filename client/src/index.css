@@ -42,11 +42,11 @@
 
 body {
   margin: 0;
-  background:
-    radial-gradient(ellipse at 15% 10%, rgba(139, 112, 46, 0.06), transparent 45%),
-    radial-gradient(ellipse at 85% 90%, rgba(139, 112, 46, 0.07), transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(139, 112, 46, 0.03), transparent 70%),
-    var(--parchment);
+  /* transparent, not var(--parchment): an opaque body background paints at the
+     very bottom of the page canvas, beneath even negative-z-index content, so
+     it would hide .app-backdrop entirely. .app-backdrop supplies the fallback
+     parchment color itself via its ::after tint layer. */
+  background: transparent;
   min-height: 100svh;
 }
 
@@ -57,6 +57,28 @@ body {
   justify-content: center;
   box-sizing: border-box;
   padding: 24px;
+}
+
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.app-content {
+  position: relative;
+  z-index: 1;
+}
+
+.app-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* tints the map so it reads as a faded watermark under the UI, not competing with it */
+  background: rgba(242, 234, 217, 0.82);
 }
 
 h1,

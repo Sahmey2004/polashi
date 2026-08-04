@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function War({ chapterState, myPlayerId, myRole, warProgress, onPlay }) {
+export default function War({ chapterState, myPlayerId, myRole, warProgress, onPlay, roadmap }) {
   const [played, setPlayed] = useState(false);
   const onTeam = chapterState.proposedTeam.includes(myPlayerId);
   const isEic = myRole.role === "EIC";
@@ -13,6 +13,7 @@ export default function War({ chapterState, myPlayerId, myRole, warProgress, onP
   if (!onTeam) {
     return (
       <div className="card">
+        {roadmap}
         <h1>War phase</h1>
         <p className="hint">
           You're not on this chapter's team. Waiting for it to resolve
@@ -24,6 +25,7 @@ export default function War({ chapterState, myPlayerId, myRole, warProgress, onP
 
   return (
     <div className="card">
+      {roadmap}
       <h1>Play your war card</h1>
       <p className="subtitle">
         {isEic

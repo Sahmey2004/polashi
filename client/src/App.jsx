@@ -9,6 +9,8 @@ import VoteReveal from "./screens/VoteReveal";
 import War from "./screens/War";
 import WarReveal from "./screens/WarReveal";
 import GameOver from "./screens/GameOver";
+import Roadmap from "./screens/Roadmap";
+import backgroundImage from "./assets/background.jpeg";
 import "./App.css";
 
 export default function App() {
@@ -28,6 +30,7 @@ export default function App() {
   const [warProgress, setWarProgress] = useState(null);
   const [warResult, setWarResult] = useState(null);
   const [tally, setTally] = useState({});
+  const [chapterResults, setChapterResults] = useState([]);
   const [gameOver, setGameOver] = useState(null);
 
   useEffect(() => {
@@ -80,6 +83,7 @@ export default function App() {
       case "warResult":
         setWarResult(msg);
         setTally((t) => ({ ...t, [msg.chapterWinner]: (t[msg.chapterWinner] ?? 0) + 1 }));
+        setChapterResults((r) => [...r, { chapter: msg.chapter, winner: msg.chapterWinner }]);
         setView("warReveal");
         break;
       case "gameOver":
@@ -133,70 +137,88 @@ export default function App() {
     setView(gameOver ? "gameOver" : "chapterBoard");
   }
 
-  switch (view) {
-    case "home":
-      return <Home onCreate={handleCreate} onJoin={handleJoin} error={error} />;
+  function renderView() {
+    switch (view) {
+      case "home":
+        return <Home onCreate={handleCreate} onJoin={handleJoin} error={error} />;
 
-    case "lobby":
-      return (
-        <Lobby
-          roomCode={roomCode}
-          players={players}
-          myPlayerId={myPlayerId}
-          isHost={isHost}
-          onStart={handleStart}
-        />
-      );
+      case "lobby":
+        return (
+          <Lobby
+            roomCode={roomCode}
+            players={players}
+            myPlayerId={myPlayerId}
+            isHost={isHost}
+            onStart={handleStart}
+          />
+        );
 
-    case "roleReveal":
-      return (
-        <RoleReveal role={myRole} onContinue={() => setView("chapterBoard")} />
-      );
+      case "roleReveal":
+        return (
+          <RoleReveal role={myRole} onContinue={() => setView("chapterBoard")} />
+        );
 
-    case "chapterBoard":
-      return (
-        <ChapterBoard
-          chapterState={chapterState}
-          players={players}
-          myPlayerId={myPlayerId}
-          tally={tally}
-          onPropose={handlePropose}
-        />
-      );
+      case "chapterBoard":
+        return (
+          <ChapterBoard
+            chapterState={chapterState}
+            players={players}
+            myPlayerId={myPlayerId}
+            tally={tally}
+            onPropose={handlePropose}
+            roadmap={<Roadmap chapterResults={chapterResults} animateLatest />}
+          />
+        );
 
-    case "vote":
-      return (
-        <Vote
-          key={`${chapterState.chapter}-${chapterState.proposedTeam.join(",")}`}
-          chapterState={chapterState}
-          players={players}
-          voteProgress={voteProgress}
-          onVote={handleVote}
-        />
-      );
+      case "vote":
+        return (
+          <Vote
+            key={`${chapterState.chapter}-${chapterState.proposedTeam.join(",")}`}
+            chapterState={chapterState}
+            players={players}
+            voteProgress={voteProgress}
+            onVote={handleVote}
+            roadmap={<Roadmap chapterResults={chapterResults} />}
+          />
+        );
 
-    case "war":
-      return (
-        <War
-          key={`${chapterState.chapter}-${chapterState.proposedTeam.join(",")}`}
-          chapterState={chapterState}
-          myPlayerId={myPlayerId}
-          myRole={myRole}
-          warProgress={warProgress}
-          onPlay={handlePlayCard}
-        />
-      );
+      case "war":
+        return (
+          <War
+            key={`${chapterState.chapter}-${chapterState.proposedTeam.join(",")}`}
+            chapterState={chapterState}
+            myPlayerId={myPlayerId}
+            myRole={myRole}
+            warProgress={warProgress}
+            onPlay={handlePlayCard}
+            roadmap={<Roadmap chapterResults={chapterResults} />}
+          />
+        );
 
-    case "voteReveal":
-      return <VoteReveal voteResult={voteResult} onContinue={handleVoteRevealContinue} />;
+      case "voteReveal":
+        return <VoteReveal voteResult={voteResult} onContinue={handleVoteRevealContinue} />;
 
-    case "warReveal":
-      return <WarReveal warResult={warResult} onContinue={handleWarRevealContinue} />;
+      case "warReveal":
+        return <WarReveal warResult={warResult} onContinue={handleWarRevealContinue} />;
 
-    case "gameOver":
-      return <GameOver winner={gameOver.winner} tally={tally} />;
+      case "gameOver":
+        return (
+          <GameOver
+            winner={gameOver.winner}
+            tally={tally}
+            roadmap={<Roadmap chapterResults={chapterResults} />}
+          />
+        );
 
-    default:
-      return null;
+      default:
+        return null;
+    }
   }
+
+  return (
+    <>
+      <div className="app-backdrop" style={{ backgroundImage: `url(${backgroundImage})` }} />
+      <div className="app-content">{renderView()}</div>
+    </>
+  );
 }

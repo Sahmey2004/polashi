@@ -1,9 +1,10 @@
-export default function GameOver({ winner, tally }) {
+export default function GameOver({ winner, tally, roadmap }) {
   const eicWon = winner === "EIC";
   return (
     <>
       <div className={`finale-wash ${eicWon ? "finale-wash-eic" : "finale-wash-nawab"}`} />
       <div className={`card role-card finale-card ${eicWon ? "role-eic" : "role-nawab"}`}>
+        {roadmap}
         <div className="finale-flourish" />
         <h1 className="finale-title">
           {eicWon ? "The Company Prevails" : "The Nawab's Rule Endures"}

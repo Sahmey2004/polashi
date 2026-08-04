@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Vote({ chapterState, players, voteProgress, onVote }) {
+export default function Vote({ chapterState, players, voteProgress, onVote, roadmap }) {
   const [hasVoted, setHasVoted] = useState(false);
   const team = chapterState.proposedTeam
     .map((id) => players.find((p) => p.id === id)?.nickname)
@@ -13,6 +13,7 @@ export default function Vote({ chapterState, players, voteProgress, onVote }) {
 
   return (
     <div className="card">
+      {roadmap}
       <h1>Proposed team</h1>
       <p className="subtitle">{team.join(", ")}</p>
 
