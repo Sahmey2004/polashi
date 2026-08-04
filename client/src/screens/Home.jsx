@@ -14,7 +14,7 @@ export default function Home({ onCreate, onJoin, error }) {
         <input
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          placeholder="Aisha"
+          placeholder="Sam"
           maxLength={20}
         />
       </label>
