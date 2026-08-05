@@ -10,6 +10,8 @@ import War from "./screens/War";
 import WarReveal from "./screens/WarReveal";
 import GameOver from "./screens/GameOver";
 import Roadmap from "./screens/Roadmap";
+import RulesButton from "./screens/RulesButton";
+import RulesModal from "./screens/RulesModal";
 import backgroundImage from "./assets/background.jpeg";
 import "./App.css";
 
@@ -17,6 +19,7 @@ export default function App() {
   const connRef = useRef(null);
   const [view, setView] = useState("home");
   const [error, setError] = useState(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   const [roomCode, setRoomCode] = useState(null);
   const [myPlayerId, setMyPlayerId] = useState(null);
@@ -218,7 +221,11 @@ export default function App() {
   return (
     <>
       <div className="app-backdrop" style={{ backgroundImage: `url(${backgroundImage})` }} />
-      <div className="app-content">{renderView()}</div>
+      <div className="app-content">
+        <RulesButton onClick={() => setRulesOpen(true)} />
+        {renderView()}
+        {rulesOpen && <RulesModal onClose={() => setRulesOpen(false)} />}
+      </div>
     </>
   );
 }
