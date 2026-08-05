@@ -28,6 +28,7 @@ export default function App() {
 
   const [myRole, setMyRole] = useState(null);
   const [chapterState, setChapterState] = useState(null);
+  const [currentPhase, setCurrentPhase] = useState(null);
   const [voteProgress, setVoteProgress] = useState(null);
   const [voteResult, setVoteResult] = useState(null);
   const [warProgress, setWarProgress] = useState(null);
@@ -35,6 +36,23 @@ export default function App() {
   const [tally, setTally] = useState({});
   const [chapterResults, setChapterResults] = useState([]);
   const [gameOver, setGameOver] = useState(null);
+
+  // Role reveal / vote reveal / war reveal are dramatic-pacing gates: the actual
+  // game keeps moving server-side regardless of when a given player dismisses
+  // them, so a slow player's underlying state (chapterState/voteResult/warResult)
+  // can go stale relative to what's shown. REVEAL_VIEWS are "sticky" -- no
+  // incoming event is allowed to change the view while pinned on one, only the
+  // Continue button may leave it, and it routes off currentPhase/gameOver (the
+  // single latest-known truth) rather than whatever phase happened to be current
+  // when the screen was first entered.
+  const REVEAL_VIEWS = ["roleReveal", "voteReveal", "warReveal"];
+
+  function nextViewFromCurrentState() {
+    if (gameOver) return "gameOver";
+    if (currentPhase === "VOTING") return "vote";
+    if (currentPhase === "WAR_CARDS") return "war";
+    return "chapterBoard";
+  }
 
   useEffect(() => {
     if (!error) return;
@@ -68,30 +86,30 @@ export default function App() {
         break;
       case "chapterState":
         setChapterState(msg);
-        setView((v) => {
-          if (v === "roleReveal" || v === "voteReveal" || v === "warReveal") return v;
-          return msg.phase === "VOTING" ? "vote" : "chapterBoard";
-        });
+        setCurrentPhase(msg.phase);
+        setView((v) => (REVEAL_VIEWS.includes(v) ? v : (msg.phase === "VOTING" ? "vote" : "chapterBoard")));
         break;
       case "voteProgress":
         setVoteProgress(msg);
         break;
       case "voteResult":
         setVoteResult(msg);
-        setView("voteReveal");
+        setCurrentPhase(msg.phase);
+        setView((v) => (REVEAL_VIEWS.includes(v) ? v : "voteReveal"));
         break;
       case "warProgress":
         setWarProgress(msg);
         break;
       case "warResult":
         setWarResult(msg);
+        setCurrentPhase(msg.phase);
         setTally((t) => ({ ...t, [msg.chapterWinner]: (t[msg.chapterWinner] ?? 0) + 1 }));
         setChapterResults((r) => [...r, { chapter: msg.chapter, winner: msg.chapterWinner }]);
-        setView("warReveal");
+        setView((v) => (REVEAL_VIEWS.includes(v) ? v : "warReveal"));
         break;
       case "gameOver":
         setGameOver(msg);
-        setView((v) => (v === "voteReveal" || v === "warReveal" ? v : "gameOver"));
+        setView((v) => (REVEAL_VIEWS.includes(v) ? v : "gameOver"));
         break;
       default:
         break;
@@ -126,18 +144,8 @@ export default function App() {
     connRef.current.send("playWarCard", { red });
   }
 
-  function handleVoteRevealContinue() {
-    if (voteResult.phase === "WAR_CARDS") {
-      setView("war");
-    } else if (gameOver) {
-      setView("gameOver");
-    } else {
-      setView("chapterBoard");
-    }
-  }
-
-  function handleWarRevealContinue() {
-    setView(gameOver ? "gameOver" : "chapterBoard");
+  function handleRevealContinue() {
+    setView(nextViewFromCurrentState());
   }
 
   function renderView() {
@@ -157,9 +165,7 @@ export default function App() {
         );
 
       case "roleReveal":
-        return (
-          <RoleReveal role={myRole} onContinue={() => setView("chapterBoard")} />
-        );
+        return <RoleReveal role={myRole} onContinue={handleRevealContinue} />;
 
       case "chapterBoard":
         return (
@@ -199,10 +205,10 @@ export default function App() {
         );
 
       case "voteReveal":
-        return <VoteReveal voteResult={voteResult} onContinue={handleVoteRevealContinue} />;
+        return <VoteReveal voteResult={voteResult} onContinue={handleRevealContinue} />;
 
       case "warReveal":
-        return <WarReveal warResult={warResult} onContinue={handleWarRevealContinue} />;
+        return <WarReveal warResult={warResult} onContinue={handleRevealContinue} />;
 
       case "gameOver":
         return (
